@@ -2,64 +2,47 @@ import FeedbackOptions from './components/FeedbackOptions'
 import Statistics from './components/Statistics/Statistics'
 import Notification from './components/Notification'
 import Section from './components/Section'
-import React, { Component } from 'react';
+import React from 'react';
+import { connect } from 'react-redux'
+import { addFeedBack } from './redux/actions'
+import store from './redux/store';
 
-class App extends Component {
+function App({value,onLeaveFeedback})  {
     
-    state = {
-        good: 0,
-        neutral: 0,
-        bad: 0
-    };
+      const objKey = Object.keys(store.getState())
     
-    addFeedBack = event => {
-
-        const stateKey = event.target.id;
-        this.setState((prevState) => ({ [stateKey]: prevState[stateKey] + 1 }));
         
-    }
-
-    countTotalFeedback = () => {
-
-        const { good, neutral, bad } = this.state
-        return (good + neutral + bad)
-    }
-     
-    countPositiveFeedbackPercentage = () => {
-
-        const total = this.countTotalFeedback()
-        const { good } = this.state;
-        const percent = good * 100 / total;
-        return percent
-    }  
-    
-    
-    render() {
-
-         const total = this.countTotalFeedback()
-         const percent = this.countPositiveFeedbackPercentage()
-         const { good, neutral, bad } = this.state
-        const objKey = Object.keys(this.state)
+        const {good, neutral, bad} =store.getState()
         
         return (
         
             <Section title={"Please leave feedback"} >
                 
-                <FeedbackOptions options={objKey} onLeaveFeedback={this.addFeedBack} />
                 
-                {!!total && <Statistics
-                    good={good}
-                    neutral={neutral}
-                    bad={bad}
-                    total={total}
-                    positivePercentage={Math.round(percent)} />}
+                <FeedbackOptions options={objKey} onLeaveFeedback={onLeaveFeedback} />
                 
-                {!total && <Notification message={'No feedback given'} />}
+                
+                
+                { !!(good + neutral + bad) && <Statistics {...store.getState()} />}
+                
+                { !(good + neutral + bad) && <Notification message={'No feedback given'} />} 
                 
              </Section>
                
              )
+    
+}
+const mapStateToProps = state => {
+    return {
+        value: state
     }
 }
 
-export default App;
+
+const mapDispatchToProps = dispatch => {
+    return {
+        onLeaveFeedback: e => dispatch(addFeedBack(1,e.target.id))
+        
+    }
+}
+export default connect(mapStateToProps,mapDispatchToProps)(App) ;
